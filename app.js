@@ -17,42 +17,44 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Send a message
+// Send message function
 window.sendMessage = () => {
   const input = document.getElementById("message-input");
   const text = input.value.trim();
   if (text !== "") {
+    console.log("Sending message:", text); // Debugging log
     const messageRef = ref(db, "messages/" + Date.now());
     set(messageRef, {
       text: text,
       timestamp: Date.now()
+    }).then(() => {
+      input.value = "";
+    }).catch((error) => {
+      console.error("Error sending message:", error);
     });
-    input.value = "";
   }
 };
 
-// Listen for new messages
-function listenForMessages() {
-  const messagesRef = ref(db, "messages");
-  onValue(messagesRef, (snapshot) => {
-    const messages = snapshot.val();
-    const chatBox = document.getElementById("chat-box");
-    chatBox.innerHTML = ""; // Clear chat box
-    for (const key in messages) {
+// Display messages
+const chatBox = document.getElementById("chat-box");
+const messagesRef = ref(db, "messages");
+
+onValue(messagesRef, (snapshot) => {
+  const messages = snapshot.val();
+  chatBox.innerHTML = ""; // Clear old messages
+  if (messages) {
+    Object.keys(messages).forEach((key) => {
       const msg = messages[key];
-      const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const p = document.createElement("p");
+      const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       p.textContent = `[${time}] ${msg.text}`;
       chatBox.appendChild(p);
-    }
-    chatBox.scrollTop = chatBox.scrollHeight; // Auto scroll
-  });
-}
+    });
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+});
 
-// Call on load
-listenForMessages();
-
-// Allow Enter key to send message
+// Enter key shortcut
 document.getElementById("message-input").addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
     sendMessage();
