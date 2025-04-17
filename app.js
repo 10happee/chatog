@@ -6,26 +6,12 @@ const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-let username = "";
-
-// 🧍 Handle username input
-document.getElementById("username-form").addEventListener("submit", (e) => {
-  e.preventDefault();
-  const input = document.getElementById("username-input");
-  username = input.value.trim();
-  if (username) {
-    document.getElementById("username-prompt").style.display = "none";
-    loadMessages();
-    listenForNewMessages();
-  }
-});
-
 // ✉️ Send message
 window.sendMessage = async () => {
   const input = document.getElementById("message-input");
   const text = input.value.trim();
-  if (text && username) {
-    await supabase.from("messages").insert([{ username, text }]);
+  if (text) {
+    await supabase.from("messages").insert([{ text }]);
     input.value = "";
   }
 };
@@ -35,7 +21,7 @@ function showMessage(msg) {
   const chatBox = document.getElementById("chat-box");
   const p = document.createElement("p");
   const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  p.textContent = `[${time}] ${msg.username}: ${msg.text}`;
+  p.textContent = `[${time}] ${msg.text}`;
   chatBox.appendChild(p);
   chatBox.scrollTop = chatBox.scrollHeight;
 }
@@ -65,6 +51,10 @@ function listenForNewMessages() {
     })
     .subscribe();
 }
+
+// 📚 Initialize chat history and listen for updates
+loadMessages();
+listenForNewMessages();
 
 // ⏎ Support Enter key to send
 document.getElementById("message-input").addEventListener("keydown", (e) => {
