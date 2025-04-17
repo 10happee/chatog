@@ -1,7 +1,15 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+import {
+  getDatabase,
+  ref,
+  set,
+  onValue,
+  remove,
+  child,
+  get
+} from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-// Your Firebase config
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyDTQvxP6ERHw5e00BIFsEPy1R80Ma_6qfM",
   authDomain: "happeechat.firebaseapp.com",
@@ -13,25 +21,37 @@ const firebaseConfig = {
   measurementId: "G-JTMNJS18XP"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Send message function
+let username = "";
+
+// Start chat after setting username
+window.startChat = () => {
+  const input = document.getElementById("username-input");
+  username = input.value.trim() || "Anonymous";
+
+  document.getElementById("username-form").style.display = "none";
+  document.getElementById("chat-box").style.display = "block";
+  document.getElementById("chat-form").style.display = "flex";
+
+  listenForMessages();
+  cleanOldMessages(); // Initial cleanup
+};
+
+// Send message
 window.sendMessage = () => {
   const input = document.getElementById("message-input");
   const text = input.value.trim();
   if (text !== "") {
-    console.log("Sending message:", text); // Debugging log
-    const messageRef = ref(db, "messages/" + Date.now());
+    const timestamp = Date.now();
+    const messageRef = ref(db, "messages/" + timestamp);
     set(messageRef, {
-      text: text,
-      timestamp: Date.now()
-    }).then(() => {
-      input.value = "";
-    }).catch((error) => {
-      console.error("Error sending message:", error);
+      text,
+      timestamp,
+      username
     });
+    input.value = "";
   }
 };
 
@@ -39,24 +59,46 @@ window.sendMessage = () => {
 const chatBox = document.getElementById("chat-box");
 const messagesRef = ref(db, "messages");
 
-onValue(messagesRef, (snapshot) => {
-  const messages = snapshot.val();
-  chatBox.innerHTML = ""; // Clear old messages
-  if (messages) {
-    Object.keys(messages).forEach((key) => {
-      const msg = messages[key];
-      const p = document.createElement("p");
-      const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      p.textContent = `[${time}] ${msg.text}`;
-      chatBox.appendChild(p);
-    });
-    chatBox.scrollTop = chatBox.scrollHeight;
-  }
-});
+function listenForMessages() {
+  onValue(messagesRef, (snapshot) => {
+    const messages = snapshot.val();
+    chatBox.innerHTML = "";
+    if (messages) {
+      const keys = Object.keys(messages).sort();
+      keys.forEach((key) => {
+        const msg = messages[key];
+        const p = document.createElement("p");
+        const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        p.textContent = `[${time}] ${msg.username || "Unknown"}: ${msg.text}`;
+        chatBox.appendChild(p);
+      });
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+  });
+}
 
-// Enter key shortcut
-document.getElementById("message-input").addEventListener("keydown", (e) => {
-  if (e.key === "Enter") {
-    sendMessage();
-  }
-});
+// Delete messages older than 12 hours or keep only latest 300
+function cleanOldMessages() {
+  get(messagesRef).then((snapshot) => {
+    const messages = snapshot.val();
+    if (!messages) return;
+
+    const now = Date.now();
+    const keys = Object.keys(messages);
+    const keysToDelete = [];
+
+    keys.sort((a, b) => parseInt(a) - parseInt(b));
+
+    for (let i = 0; i < keys.length; i++) {
+      const msg = messages[keys[i]];
+      const age = now - msg.timestamp;
+      if (age > 12 * 60 * 60 * 1000 || keys.length - i > 300) {
+        keysToDelete.push(keys[i]);
+      }
+    }
+
+    keysToDelete.forEach((key) => {
+      remove(ref(db, "messages/" + key));
+    });
+  });
+}
