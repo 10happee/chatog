@@ -1,62 +1,58 @@
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-// 🔐 Supabase credentials
-const supabaseUrl = "https://lcsfchtrwrjgaqpqlpwc.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxjc2ZjaHR3cndqZ2FxcHFscHdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ5MzA3MDgsImV4cCI6MjA2MDUwNjcwOH0.S5tWZT9jso6BpuWwZHzkvNN0E7eGFUeqlQp7UxY9Mhg";
+// Your Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyDTQvxP6ERHw5e00BIFsEPy1R80Ma_6qfM",
+  authDomain: "happeechat.firebaseapp.com",
+  databaseURL: "https://happeechat-default-rtdb.firebaseio.com",
+  projectId: "happeechat",
+  storageBucket: "happeechat.firebasestorage.app",
+  messagingSenderId: "851920750529",
+  appId: "1:851920750529:web:8e15bf1c0b685aa2c41140",
+  measurementId: "G-JTMNJS18XP"
+};
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-// ✉️ Send message
-window.sendMessage = async () => {
+// Send a message
+window.sendMessage = () => {
   const input = document.getElementById("message-input");
   const text = input.value.trim();
-  if (text) {
-    await supabase.from("messages").insert([{ text }]);
+  if (text !== "") {
+    const messageRef = ref(db, "messages/" + Date.now());
+    set(messageRef, {
+      text: text,
+      timestamp: Date.now()
+    });
     input.value = "";
   }
 };
 
-// 📥 Show message
-function showMessage(msg) {
-  const chatBox = document.getElementById("chat-box");
-  const p = document.createElement("p");
-  const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  p.textContent = `[${time}] ${msg.text}`;
-  chatBox.appendChild(p);
-  chatBox.scrollTop = chatBox.scrollHeight;
+// Listen for new messages
+function listenForMessages() {
+  const messagesRef = ref(db, "messages");
+  onValue(messagesRef, (snapshot) => {
+    const messages = snapshot.val();
+    const chatBox = document.getElementById("chat-box");
+    chatBox.innerHTML = ""; // Clear chat box
+    for (const key in messages) {
+      const msg = messages[key];
+      const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const p = document.createElement("p");
+      p.textContent = `[${time}] ${msg.text}`;
+      chatBox.appendChild(p);
+    }
+    chatBox.scrollTop = chatBox.scrollHeight; // Auto scroll
+  });
 }
 
-// 📚 Load chat history
-async function loadMessages() {
-  const { data, error } = await supabase
-    .from("messages")
-    .select("*")
-    .order("timestamp", { ascending: true });
+// Call on load
+listenForMessages();
 
-  if (data) {
-    data.forEach(showMessage);
-  }
-}
-
-// 🔁 Listen for new messages
-function listenForNewMessages() {
-  supabase
-    .channel("chat-room")
-    .on("postgres_changes", {
-      event: "INSERT",
-      schema: "public",
-      table: "messages"
-    }, (payload) => {
-      showMessage(payload.new);
-    })
-    .subscribe();
-}
-
-// 📚 Initialize chat history and listen for updates
-loadMessages();
-listenForNewMessages();
-
-// ⏎ Support Enter key to send
+// Allow Enter key to send message
 document.getElementById("message-input").addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
     sendMessage();
