@@ -1,62 +1,72 @@
-// Firebase imports
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-import {
-  getDatabase, ref, push, onChildAdded, get, remove, child
-} from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-// 🔧 Your Firebase Config Here
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT.firebaseio.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
+// 🔐 Supabase credentials
+const supabaseUrl = "https://lcsfchtrwrjgaqpqlpwc.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxjc2ZjaHR3cndqZ2FxcHFscHdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ5MzA3MDgsImV4cCI6MjA2MDUwNjcwOH0.S5tWZT9jso6BpuWwZHzkvNN0E7eGFUeqlQp7UxY9Mhg";
 
-// Init Firebase
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const messagesRef = ref(db, "messages");
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-// 🧹 Delete messages older than 24h on page load
-const now = Date.now();
-const ONE_DAY = 24 * 60 * 60 * 1000;
+let username = "";
 
-get(messagesRef).then(snapshot => {
-  snapshot.forEach(childSnap => {
-    const msg = childSnap.val();
-    if (msg.timestamp && now - msg.timestamp > ONE_DAY) {
-      remove(child(messagesRef, childSnap.key));
-    }
-  });
+// 🧍 Handle username input
+document.getElementById("username-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const input = document.getElementById("username-input");
+  username = input.value.trim();
+  if (username) {
+    document.getElementById("username-prompt").style.display = "none";
+    loadMessages();
+    listenForNewMessages();
+  }
 });
 
-// 📨 Realtime listener
-onChildAdded(messagesRef, (snapshot) => {
-  const chatBox = document.getElementById("chat-box");
-  const msg = snapshot.val();
-  const p = document.createElement("p");
-  p.textContent = msg.text;
-  chatBox.appendChild(p);
-  chatBox.scrollTop = chatBox.scrollHeight;
-});
-
-// 📝 Send message
-window.sendMessage = () => {
+// ✉️ Send message
+window.sendMessage = async () => {
   const input = document.getElementById("message-input");
   const text = input.value.trim();
-  if (text) {
-    push(messagesRef, {
-      text,
-      timestamp: Date.now()
-    });
+  if (text && username) {
+    await supabase.from("messages").insert([{ username, text }]);
     input.value = "";
   }
 };
 
-// ⏎ Enter key support
+// 📥 Show message
+function showMessage(msg) {
+  const chatBox = document.getElementById("chat-box");
+  const p = document.createElement("p");
+  const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  p.textContent = `[${time}] ${msg.username}: ${msg.text}`;
+  chatBox.appendChild(p);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// 📚 Load chat history
+async function loadMessages() {
+  const { data, error } = await supabase
+    .from("messages")
+    .select("*")
+    .order("timestamp", { ascending: true });
+
+  if (data) {
+    data.forEach(showMessage);
+  }
+}
+
+// 🔁 Listen for new messages
+function listenForNewMessages() {
+  supabase
+    .channel("chat-room")
+    .on("postgres_changes", {
+      event: "INSERT",
+      schema: "public",
+      table: "messages"
+    }, (payload) => {
+      showMessage(payload.new);
+    })
+    .subscribe();
+}
+
+// ⏎ Support Enter key to send
 document.getElementById("message-input").addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
     sendMessage();
