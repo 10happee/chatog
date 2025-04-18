@@ -112,6 +112,139 @@
 
   <audio id="ping-sound" src="ping.mp3" preload="auto"></audio>
 
-  <script type="module" src="app.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      set,
+      onValue,
+      remove,
+      child,
+      get
+    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDTQvxP6ERHw5e00BIFsEPy1R80Ma_6qfM",
+      authDomain: "happeechat.firebaseapp.com",
+      databaseURL: "https://happeechat-default-rtdb.firebaseio.com",
+      projectId: "happeechat",
+      storageBucket: "happeechat.firebasestorage.app",
+      messagingSenderId: "851920750529",
+      appId: "1:851920750529:web:8e15bf1c0b685aa2c41140",
+      measurementId: "G-JTMNJS18XP"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    let username = "";
+    let lastMessageKey = null;
+
+    window.startChat = function () {
+      const input = document.getElementById("username-input");
+      username = input.value.trim() || "Anonymous";
+
+      document.getElementById("username-form").style.display = "none";
+      document.getElementById("chat-box").style.display = "block";
+      document.getElementById("chat-form").style.display = "flex";
+
+      listenForMessages();
+      cleanOldMessages();
+
+      const messageInput = document.getElementById("message-input");
+      messageInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+    };
+
+    window.sendMessage = function () {
+      const input = document.getElementById("message-input");
+      const text = input.value.trim();
+      if (text !== "") {
+        const timestamp = Date.now();
+        const messageRef = ref(db, "messages/" + timestamp);
+        set(messageRef, {
+          text,
+          timestamp,
+          username
+        });
+        input.value = "";
+      }
+    };
+
+    const chatBox = document.getElementById("chat-box");
+    const messagesRef = ref(db, "messages");
+
+    function listenForMessages() {
+      onValue(messagesRef, (snapshot) => {
+        const messages = snapshot.val();
+        chatBox.innerHTML = "";
+        if (messages) {
+          const keys = Object.keys(messages).sort();
+          const latestKey = keys[keys.length - 1];
+          keys.forEach((key) => {
+            const msg = messages[key];
+            const wrapper = document.createElement("div");
+            wrapper.className = "message-wrapper";
+
+            const p = document.createElement("p");
+            p.style.whiteSpace = "pre-wrap";
+            p.textContent = `[${new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}] ${msg.username || "Unknown"}: ${msg.text}`;
+
+            // Convert URLs to links
+            p.innerHTML = p.textContent.replace(/(https:\/\/\S+)/g, '<a href="$1" class="link" target="_blank">$1</a>');
+
+            const copyBtn = document.createElement("button");
+            copyBtn.className = "copy-button";
+            copyBtn.textContent = "Copy";
+            copyBtn.onclick = () => navigator.clipboard.writeText(msg.text);
+
+            wrapper.appendChild(p);
+            wrapper.appendChild(copyBtn);
+            chatBox.appendChild(wrapper);
+          });
+          chatBox.appendChild(document.createElement("div")).style.height = "60px";
+          chatBox.scrollTop = chatBox.scrollHeight;
+
+          if (lastMessageKey && latestKey !== lastMessageKey) {
+            const sound = document.getElementById("ping-sound");
+            const volume = parseFloat(document.getElementById("volume-slider").value);
+            sound.volume = volume;
+            sound.play();
+          }
+          lastMessageKey = latestKey;
+        }
+      });
+    }
+
+    function cleanOldMessages() {
+      get(messagesRef).then((snapshot) => {
+        const messages = snapshot.val();
+        if (!messages) return;
+
+        const now = Date.now();
+        const keys = Object.keys(messages);
+        const keysToDelete = [];
+
+        keys.sort((a, b) => parseInt(a) - parseInt(b));
+
+        for (let i = 0; i < keys.length; i++) {
+          const msg = messages[keys[i]];
+          const age = now - msg.timestamp;
+          if (age > 12 * 60 * 60 * 1000 || keys.length - i > 300) {
+            keysToDelete.push(keys[i]);
+          }
+        }
+
+        keysToDelete.forEach((key) => {
+          remove(ref(db, "messages/" + key));
+        });
+      });
+    }
+  </script>
 </body>
 </html>
