@@ -38,7 +38,7 @@ function startChat() {
   listenForMessages();
   cleanOldMessages(); // Initial cleanup
 
-  // ✅ Enter to send
+  // Enter to send message functionality
   const messageInput = document.getElementById("message-input");
   messageInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -62,7 +62,7 @@ function sendMessage() {
       timestamp,
       username
     });
-    input.value = "";
+    input.value = ""; // Clear input after sending
   }
 }
 
