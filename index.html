@@ -23,37 +23,36 @@
       margin-bottom: 70px;
     }
 
-    #chat-box p {
+    .message {
       margin: 5px 0;
       white-space: pre-wrap;
       word-wrap: break-word;
-      transition: background-color 0.2s ease;
       position: relative;
-      padding-right: 60px;
+      transition: background-color 0.2s ease;
     }
 
-    #chat-box p:hover {
+    .message:hover {
       background-color: rgba(255, 255, 255, 0.05);
-      cursor: pointer;
-    }
-
-    .copy-btn {
-      position: absolute;
-      top: 50%;
-      right: 10px;
-      transform: translateY(-50%);
-      background-color: #4f46e5;
-      color: white;
-      border: none;
-      padding: 5px 10px;
       border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      visibility: hidden;
+      padding: 2px 4px;
     }
 
-    #chat-box p:hover .copy-btn {
-      visibility: visible;
+    .copy-button {
+      display: none;
+      position: absolute;
+      right: 5px;
+      top: 2px;
+      font-size: 0.8rem;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      border-radius: 4px;
+      color: white;
+      cursor: pointer;
+      padding: 2px 6px;
+    }
+
+    .message:hover .copy-button {
+      display: inline;
     }
 
     #chat-form {
@@ -98,42 +97,30 @@
       color: #90cdf4;
       text-decoration: underline;
     }
-
-    #username-form {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-    }
-
-    #username-input {
-      font-size: 1.2rem;
-      padding: 10px 20px;
-      width: 300px;
-      max-width: 80%;
-      border-radius: 8px;
-      border: none;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
   </style>
 </head>
 <body>
 
-<div id="username-form">
-  <h2>Enter your username to start chatting</h2>
-  <input type="text" id="username-input" placeholder="Your username" />
-  <button onclick="startChat()">Start Chat</button>
+<!-- Username Form -->
+<div id="username-form" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
+  <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">Enter your username to start chatting</h2>
+  <input type="text" id="username-input" placeholder="Your username" style="font-size: 1.2rem; padding: 10px 20px; width: 300px; max-width: 80%; border-radius: 8px; border: none; box-shadow: 0 0 10px rgba(0,0,0,0.1);" />
+  <button onclick="startChat()" style="margin-top: 1rem;">Start Chat</button>
 </div>
 
+<!-- Chat box -->
 <div id="chat-box" style="display: none;"></div>
 
+<!-- Chat input form -->
 <form id="chat-form">
   <textarea id="message-input" placeholder="Type your message..." rows="1"></textarea>
   <button type="button" onclick="sendMessage()">Send</button>
 </form>
 
+<!-- Volume Slider -->
 <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.5" title="Ping Volume" />
+
+<!-- Sound -->
 <audio id="ping-sound" src="ping.mp3" preload="auto"></audio>
 
 <script type="module">
@@ -152,7 +139,7 @@
     authDomain: "happeechat.firebaseapp.com",
     databaseURL: "https://happeechat-default-rtdb.firebaseio.com",
     projectId: "happeechat",
-    storageBucket: "happeechat.firebasestorage.app",
+    storageBucket: "happeechat.appspot.com",
     messagingSenderId: "851920750529",
     appId: "1:851920750529:web:8e15bf1c0b685aa2c41140",
     measurementId: "G-JTMNJS18XP"
@@ -174,6 +161,8 @@
     document.getElementById("username-form").style.display = "none";
     document.getElementById("chat-box").style.display = "block";
     document.getElementById("chat-form").style.display = "flex";
+
+    document.getElementById("ping-sound").play().catch(() => {}); // Unlock audio
 
     listenForMessages();
     cleanOldMessages();
@@ -213,33 +202,41 @@
         const latestKey = keys[keys.length - 1];
         keys.forEach((key) => {
           const msg = messages[key];
-          const p = document.createElement("p");
           const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
           const msgText = msg.text.replace(/(https:\/\/\S+)/g, '<a href="$1" target="_blank">$1</a>');
 
-          p.innerHTML = `[${time}] ${msg.username || "Unknown"}: ${msgText}`;
+          const p = document.createElement("p");
+          p.classList.add("message");
+          p.innerHTML = `[${time}] <strong>${msg.username || "Unknown"}</strong>: ${msgText}`;
 
-          const copyButton = document.createElement("button");
-          copyButton.classList.add("copy-btn");
-          copyButton.textContent = "Copy";
-          copyButton.onclick = () => {
-            navigator.clipboard.writeText(msg.text).then(() => {
-              copyButton.textContent = "Copied!";
-              setTimeout(() => copyButton.textContent = "Copy", 2000);
-            }).catch((err) => {
-              alert("Failed to copy message: " + err);
-            });
+          const copyBtn = document.createElement("button");
+          copyBtn.className = "copy-button";
+          copyBtn.innerText = "Copy";
+          copyBtn.onclick = () => {
+            navigator.clipboard.writeText(msg.text);
+            copyBtn.innerText = "Copied!";
+            setTimeout(() => {
+              copyBtn.innerText = "Copy";
+            }, 1500);
           };
 
-          p.appendChild(copyButton);
+          p.appendChild(copyBtn);
           chatBox.appendChild(p);
         });
 
+        // Add spacer to prevent overlap
         const spacer = document.createElement("div");
         spacer.style.height = "60px";
         chatBox.appendChild(spacer);
 
         chatBox.scrollTop = chatBox.scrollHeight;
+
+        if (lastMessageKey && latestKey !== lastMessageKey) {
+          const sound = document.getElementById("ping-sound");
+          const volume = parseFloat(document.getElementById("volume-slider").value);
+          sound.volume = volume;
+          sound.play().catch(() => {});
+        }
         lastMessageKey = latestKey;
       }
     });
