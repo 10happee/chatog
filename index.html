@@ -1,187 +1,166 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chat App</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Happee Chat</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet" />
   <style>
-    /* Basic Styles */
     body {
       font-family: 'Poppins', sans-serif;
       margin: 0;
-      padding: 0;
-      background-color: #f7f7f7;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    /* Center username input */
-    #username-form {
+      background: #111;
+      color: white;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      height: 100vh;
     }
 
-    #username-input {
-      padding: 10px;
-      margin-bottom: 20px;
-      font-size: 16px;
-      width: 200px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-
-    /* Chat box styles */
     #chat-box {
-      display: none;
-      width: 100%;
-      max-width: 600px;
-      height: 400px;
+      flex: 1;
       overflow-y: auto;
-      background-color: white;
-      padding: 20px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      border-radius: 8px;
-      margin-bottom: 10px;
+      padding: 10px;
+      margin-bottom: 70px;
     }
 
-    /* Chat input form */
+    #chat-box p {
+      margin: 5px 0;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    #chat-box p:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+      transition: background-color 0.2s ease;
+      border-radius: 4px;
+      padding: 2px 4px;
+    }
+
     #chat-form {
       display: none;
       position: fixed;
-      bottom: 20px;
+      bottom: 0;
+      left: 0;
       width: 100%;
-      max-width: 600px;
-      background-color: rgba(255, 255, 255, 0.8);
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(8px);
       padding: 10px;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       display: flex;
-      justify-content: space-between;
-      align-items: center;
+      gap: 10px;
+      box-sizing: border-box;
     }
 
     #message-input {
-      width: 80%;
+      flex: 1;
       padding: 10px;
-      font-size: 16px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-
-    #message-send-button {
-      padding: 10px 15px;
-      background-color: #3498db;
-      color: white;
+      border-radius: 6px;
       border: none;
-      border-radius: 5px;
-      cursor: pointer;
+      resize: none;
     }
 
-    #message-send-button:hover {
-      background-color: #2980b9;
-    }
-
-    /* Hover effect for message text */
-    .message:hover {
-      background-color: #f0f0f0;
-      cursor: pointer;
-    }
-
-    /* Copy button for each message */
-    .copy-button {
-      padding: 3px 5px;
-      margin-left: 10px;
-      background-color: #3498db;
-      color: white;
+    button {
+      padding: 10px 20px;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
+      background-color: #4f46e5;
+      color: white;
       cursor: pointer;
-      font-size: 12px;
     }
 
-    .copy-button:hover {
-      background-color: #2980b9;
-    }
-
-    /* Volume slider in the top right corner */
     #volume-slider {
-      position: absolute;
-      top: 20px;
-      right: 20px;
+      position: fixed;
+      top: 10px;
+      right: 10px;
       width: 100px;
-      margin: 0;
     }
 
+    a {
+      color: #90cdf4;
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
 
-  <!-- Username input -->
-  <div id="username-form">
-    <input type="text" id="username-input" placeholder="Enter your username..." />
-    <button onclick="startChat()">Start Chat</button>
-  </div>
+<div id="username-form" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
+  <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">Enter your username to start chatting</h2>
+  <input type="text" id="username-input" placeholder="Your username" style="font-size: 1.2rem; padding: 10px 20px; width: 300px; max-width: 80%; border-radius: 8px; border: none; box-shadow: 0 0 10px rgba(0,0,0,0.1);" />
+  <button onclick="startChat()" style="margin-top: 1rem;">Start Chat</button>
+</div>
 
-  <!-- Chat Box -->
-  <div id="chat-box"></div>
+<!-- Chat box -->
+<div id="chat-box" style="display: none;"></div>
 
-  <!-- Chat Input Form -->
-  <form id="chat-form">
-    <input type="text" id="message-input" placeholder="Type your message..." />
-    <button type="button" id="message-send-button" onclick="sendMessage()">Send</button>
-  </form>
+<!-- Chat input form -->
+<form id="chat-form">
+  <textarea id="message-input" placeholder="Type your message..." rows="1"></textarea>
+  <button type="button" onclick="sendMessage()">Send</button>
+</form>
 
-  <!-- Volume Slider -->
-  <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.5" />
+<!-- Volume Slider -->
+<input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.5" title="Ping Volume" />
 
-  <!-- Audio File -->
-  <audio id="ping-sound" src="ping-sound.mp3" preload="auto"></audio>
+<!-- Sound -->
+<audio id="ping-sound" src="ping.mp3" preload="auto"></audio>
 
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+<!-- Loading Spinner -->
+<div id="loading-spinner" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+  <div style="border: 6px solid #f3f3f3; border-top: 6px solid #4f46e5; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite;"></div>
+</div>
 
-  <script>
-    // Firebase Config
-    const firebaseConfig = {
-      apiKey: "AIzaSyDTQvxP6ERHw5e00BIFsEPy1R80Ma_6qfM",
-      authDomain: "happeechat.firebaseapp.com",
-      databaseURL: "https://happeechat-default-rtdb.firebaseio.com",
-      projectId: "happeechat",
-      storageBucket: "happeechat.firebasestorage.app",
-      messagingSenderId: "851920750529",
-      appId: "1:851920750529:web:8e15bf1c0b685aa2c41140",
-      measurementId: "G-JTMNJS18XP"
-    };
+<style>
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+</style>
 
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+  import {
+    getDatabase,
+    ref,
+    set,
+    onValue,
+    remove,
+    get
+  } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-    let username = "";
+  const firebaseConfig = {
+    apiKey: "AIzaSyDTQvxP6ERHw5e00BIFsEPy1R80Ma_6qfM",
+    authDomain: "happeechat.firebaseapp.com",
+    databaseURL: "https://happeechat-default-rtdb.firebaseio.com",
+    projectId: "happeechat",
+    storageBucket: "happeechat.firebasestorage.app",
+    messagingSenderId: "851920750529",
+    appId: "1:851920750529:web:8e15bf1c0b685aa2c41140",
+    measurementId: "G-JTMNJS18XP"
+  };
 
-    // Start chat after setting username
-    function startChat() {
-      const input = document.getElementById("username-input");
-      username = input.value.trim() || "Anonymous";
-      if (!username) return;
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  let username = "";
+  let lastMessageKey = null;
 
-      document.getElementById("username-form").style.display = "none";
+  const chatBox = document.getElementById("chat-box");
+  const messagesRef = ref(db, "messages");
+
+  function startChat() {
+    const input = document.getElementById("username-input");
+    username = input.value.trim() || "Anonymous";
+    if (!username) return;
+
+    document.getElementById("username-form").style.display = "none";
+    document.getElementById("loading-spinner").style.display = "flex";
+
+    setTimeout(() => {
+      document.getElementById("loading-spinner").style.display = "none";
       document.getElementById("chat-box").style.display = "block";
       document.getElementById("chat-form").style.display = "flex";
 
       listenForMessages();
       cleanOldMessages();
 
-      // Enter-to-send functionality
       const messageInput = document.getElementById("message-input");
       messageInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter" && !e.shiftKey) {
@@ -189,100 +168,85 @@
           sendMessage();
         }
       });
-    }
+    }, 1000);
+  }
 
-    // Send message function
-    function sendMessage() {
-      const input = document.getElementById("message-input");
-      const text = input.value.trim();
-      if (text !== "") {
-        const timestamp = Date.now();
-        const messageRef = db.ref("messages/" + timestamp);
-        messageRef.set({
-          text,
-          timestamp,
-          username
+  window.startChat = startChat;
+
+  window.sendMessage = () => {
+    const input = document.getElementById("message-input");
+    const text = input.value.trim();
+    if (text !== "") {
+      const timestamp = Date.now();
+      const messageRef = ref(db, "messages/" + timestamp);
+      set(messageRef, {
+        text,
+        timestamp,
+        username
+      });
+      input.value = "";
+    }
+  };
+
+  function listenForMessages() {
+    onValue(messagesRef, (snapshot) => {
+      const messages = snapshot.val();
+      chatBox.innerHTML = "";
+      if (messages) {
+        const keys = Object.keys(messages).sort();
+        const latestKey = keys[keys.length - 1];
+        keys.forEach((key) => {
+          const msg = messages[key];
+          const p = document.createElement("p");
+          const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const msgText = msg.text.replace(/(https:\/\/\S+)/g, '<a href="$1" target="_blank">$1</a>');
+          p.innerHTML = `[${time}] <strong>${msg.username || "Unknown"}</strong>: ${msgText}`;
+          chatBox.appendChild(p);
         });
-        input.value = "";
+
+        // Add spacer to prevent overlap
+        const spacer = document.createElement("div");
+        spacer.style.height = "60px";
+        chatBox.appendChild(spacer);
+
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        if (lastMessageKey && latestKey !== lastMessageKey) {
+          const sound = document.getElementById("ping-sound");
+          const volume = parseFloat(document.getElementById("volume-slider").value);
+          sound.volume = volume;
+          sound.play();
+        }
+        lastMessageKey = latestKey;
       }
-    }
+    });
+  }
 
-    // Listen for messages
-    const chatBox = document.getElementById("chat-box");
-    const messagesRef = db.ref("messages");
+  function cleanOldMessages() {
+    get(messagesRef).then((snapshot) => {
+      const messages = snapshot.val();
+      if (!messages) return;
 
-    let lastMessageKey = null;
+      const now = Date.now();
+      const keys = Object.keys(messages);
+      const keysToDelete = [];
 
-    function listenForMessages() {
-      messagesRef.on("value", (snapshot) => {
-        const messages = snapshot.val();
-        chatBox.innerHTML = "";
-        if (messages) {
-          const keys = Object.keys(messages).sort();
-          const latestKey = keys[keys.length - 1];
-          keys.forEach((key) => {
-            const msg = messages[key];
-            const p = document.createElement("p");
-            const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            p.textContent = `[${time}] ${msg.username || "Unknown"}: ${msg.text}`;
-            p.classList.add("message");
-            
-            // Add copy button next to each message
-            const copyButton = document.createElement("button");
-            copyButton.textContent = "Copy";
-            copyButton.classList.add("copy-button");
-            copyButton.onclick = () => copyMessage(msg.text);
+      keys.sort((a, b) => parseInt(a) - parseInt(b));
 
-            p.appendChild(copyButton);
-            chatBox.appendChild(p);
-          });
-          chatBox.scrollTop = chatBox.scrollHeight;
-
-          // Play sound if a new message came in
-          if (lastMessageKey && latestKey !== lastMessageKey) {
-            const sound = document.getElementById("ping-sound");
-            const volume = parseFloat(document.getElementById("volume-slider").value);
-            sound.volume = volume;
-            sound.play();
-          }
-          lastMessageKey = latestKey;
+      for (let i = 0; i < keys.length; i++) {
+        const msg = messages[keys[i]];
+        const age = now - msg.timestamp;
+        if (age > 12 * 60 * 60 * 1000 || keys.length - i > 300) {
+          keysToDelete.push(keys[i]);
         }
+      }
+
+      keysToDelete.forEach((key) => {
+        remove(ref(db, "messages/" + key));
       });
-    }
-
-    // Clean old messages
-    function cleanOldMessages() {
-      db.ref("messages").once("value", (snapshot) => {
-        const messages = snapshot.val();
-        if (!messages) return;
-
-        const now = Date.now();
-        const keys = Object.keys(messages);
-        const keysToDelete = [];
-
-        keys.sort((a, b) => parseInt(a) - parseInt(b));
-
-        for (let i = 0; i < keys.length; i++) {
-          const msg = messages[keys[i]];
-          const age = now - msg.timestamp;
-          if (age > 12 * 60 * 60 * 1000 || keys.length - i > 300) {
-            keysToDelete.push(keys[i]);
-          }
-        }
-
-        keysToDelete.forEach((key) => {
-          db.ref("messages/" + key).remove();
-        });
-      });
-    }
-
-    // Copy message to clipboard
-    function copyMessage(text) {
-      navigator.clipboard.writeText(text).then(() => {
-        alert("Message copied to clipboard!");
-      });
-    }
-  </script>
+    });
+  }
+</script>
 
 </body>
 </html>
