@@ -48,12 +48,10 @@ function startChat() {
   });
 }
 
-
-window.startChat = startChat; // <-- This is the fix
-
+window.startChat = startChat;
 
 // Send message
-window.sendMessage = () => {
+function sendMessage() {
   const input = document.getElementById("message-input");
   const text = input.value.trim();
   if (text !== "") {
@@ -66,7 +64,9 @@ window.sendMessage = () => {
     });
     input.value = "";
   }
-};
+}
+
+window.sendMessage = sendMessage;
 
 // Display messages
 const chatBox = document.getElementById("chat-box");
@@ -101,7 +101,6 @@ function listenForMessages() {
     }
   });
 }
-
 
 // Delete messages older than 12 hours or keep only latest 300
 function cleanOldMessages() {
