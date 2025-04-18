@@ -2,6 +2,35 @@
 <html lang="en">
 <head>
   <style>
+    .message-wrapper {
+  position: relative;
+  margin-bottom: 6px;
+}
+
+.copy-button {
+  position: absolute;
+  right: 0;
+  top: 0;
+  display: none;
+  background-color: #333;
+  color: white;
+  border: none;
+  padding: 2px 6px;
+  cursor: pointer;
+  font-size: 12px;
+  border-radius: 4px;
+}
+
+.message-wrapper:hover .copy-button {
+  display: block;
+}
+
+a.link {
+  color: #4ea1ff;
+  text-decoration: underline;
+  word-break: break-all;
+}
+
   /* Other CSS styles here */
   #chat-box {
     height: 70vh; /* Height of the chat area */
