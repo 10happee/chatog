@@ -60,10 +60,12 @@
     <input type="text" id="username-input" placeholder="Enter your name..." />
     <button onclick="startChat()">Start Chat</button>
   </div>
+  <form id="chat-form" style="display: none;">
+  <input type="text" id="message-input" placeholder="Type your message..." />
+  <button type="button" onclick="sendMessage()">Send</button>
+</form>
+
   <div id="chat-box" style="display: none;"></div>
-  <div id="chat-form" style="display: none;">
-    <input type="text" id="message-input" placeholder="Type a message..." />
-    <button onclick="sendMessage()">Send</button>
   </div>
 
   <script type="module" src="app.js"></script>
