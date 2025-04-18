@@ -28,35 +28,32 @@
       white-space: pre-wrap;
       word-wrap: break-word;
       position: relative;
+      padding: 2px 4px;
+      border-radius: 4px;
       transition: background-color 0.2s ease;
     }
 
     .message:hover {
       background-color: rgba(255, 255, 255, 0.05);
-      border-radius: 4px;
-      padding: 2px 4px;
     }
 
-    .copy-button {
-      display: none;
+    .copy-btn {
       position: absolute;
-      right: 5px;
-      top: 2px;
-      font-size: 0.8rem;
-      background: rgba(255,255,255,0.1);
+      right: 4px;
+      top: 4px;
+      background: transparent;
+      color: #aaa;
       border: none;
-      border-radius: 4px;
-      color: white;
+      font-size: 0.8rem;
       cursor: pointer;
-      padding: 2px 6px;
+      display: none;
     }
 
-    .message:hover .copy-button {
-      display: inline;
+    .message:hover .copy-btn {
+      display: block;
     }
 
     #chat-form {
-      display: none;
       position: fixed;
       bottom: 0;
       left: 0;
@@ -64,9 +61,9 @@
       background: rgba(0, 0, 0, 0.5);
       backdrop-filter: blur(8px);
       padding: 10px;
-      display: flex;
       gap: 10px;
       box-sizing: border-box;
+      display: none;
     }
 
     #message-input {
@@ -101,26 +98,21 @@
 </head>
 <body>
 
-<!-- Username Form -->
 <div id="username-form" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
   <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">Enter your username to start chatting</h2>
   <input type="text" id="username-input" placeholder="Your username" style="font-size: 1.2rem; padding: 10px 20px; width: 300px; max-width: 80%; border-radius: 8px; border: none; box-shadow: 0 0 10px rgba(0,0,0,0.1);" />
   <button onclick="startChat()" style="margin-top: 1rem;">Start Chat</button>
 </div>
 
-<!-- Chat box -->
 <div id="chat-box" style="display: none;"></div>
 
-<!-- Chat input form -->
 <form id="chat-form">
   <textarea id="message-input" placeholder="Type your message..." rows="1"></textarea>
   <button type="button" onclick="sendMessage()">Send</button>
 </form>
 
-<!-- Volume Slider -->
 <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.5" title="Ping Volume" />
 
-<!-- Sound -->
 <audio id="ping-sound" src="ping.mp3" preload="auto"></audio>
 
 <script type="module">
@@ -139,7 +131,7 @@
     authDomain: "happeechat.firebaseapp.com",
     databaseURL: "https://happeechat-default-rtdb.firebaseio.com",
     projectId: "happeechat",
-    storageBucket: "happeechat.appspot.com",
+    storageBucket: "happeechat.firebasestorage.app",
     messagingSenderId: "851920750529",
     appId: "1:851920750529:web:8e15bf1c0b685aa2c41140",
     measurementId: "G-JTMNJS18XP"
@@ -161,8 +153,6 @@
     document.getElementById("username-form").style.display = "none";
     document.getElementById("chat-box").style.display = "block";
     document.getElementById("chat-form").style.display = "flex";
-
-    document.getElementById("ping-sound").play().catch(() => {}); // Unlock audio
 
     listenForMessages();
     cleanOldMessages();
@@ -202,29 +192,24 @@
         const latestKey = keys[keys.length - 1];
         keys.forEach((key) => {
           const msg = messages[key];
+          const p = document.createElement("p");
+          p.className = "message";
           const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
           const msgText = msg.text.replace(/(https:\/\/\S+)/g, '<a href="$1" target="_blank">$1</a>');
-
-          const p = document.createElement("p");
-          p.classList.add("message");
           p.innerHTML = `[${time}] <strong>${msg.username || "Unknown"}</strong>: ${msgText}`;
 
           const copyBtn = document.createElement("button");
-          copyBtn.className = "copy-button";
-          copyBtn.innerText = "Copy";
+          copyBtn.className = "copy-btn";
+          copyBtn.textContent = "Copy";
           copyBtn.onclick = () => {
             navigator.clipboard.writeText(msg.text);
-            copyBtn.innerText = "Copied!";
-            setTimeout(() => {
-              copyBtn.innerText = "Copy";
-            }, 1500);
+            copyBtn.textContent = "Copied!";
+            setTimeout(() => copyBtn.textContent = "Copy", 1000);
           };
-
           p.appendChild(copyBtn);
           chatBox.appendChild(p);
         });
 
-        // Add spacer to prevent overlap
         const spacer = document.createElement("div");
         spacer.style.height = "60px";
         chatBox.appendChild(spacer);
@@ -235,7 +220,7 @@
           const sound = document.getElementById("ping-sound");
           const volume = parseFloat(document.getElementById("volume-slider").value);
           sound.volume = volume;
-          sound.play().catch(() => {});
+          sound.play();
         }
         lastMessageKey = latestKey;
       }
