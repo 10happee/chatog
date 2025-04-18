@@ -107,7 +107,13 @@ function listenForMessages() {
         p.innerHTML = `[${time}] ${msg.username || "Unknown"}: ${msg.text.replace(/\n/g, "<br>")}`; // Render line breaks
         chatBox.appendChild(p);
       });
-      chatBox.scrollTop = chatBox.scrollHeight;
+// Add empty spacer at the end to make space for chat bar
+const spacer = document.createElement("div");
+spacer.style.height = "80px";
+chatBox.appendChild(spacer);
+
+chatBox.scrollTop = chatBox.scrollHeight;
+
 
       // Play sound if a new message came in
       if (lastMessageKey && latestKey !== lastMessageKey) {
