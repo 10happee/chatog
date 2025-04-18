@@ -70,7 +70,7 @@ function sendMessage() {
 }
 
 function splitLongWords(text) {
-  const maxWordLength = 20; // Limit for word length to force a break
+  const maxWordLength = 60; // Limit for word length to force a break
   return text.split(" ").map(word => {
     if (word.length > maxWordLength) {
       // Break long words into smaller chunks
