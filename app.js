@@ -100,13 +100,32 @@ function listenForMessages() {
     if (messages) {
       const keys = Object.keys(messages).sort();
       const latestKey = keys[keys.length - 1];
-      keys.forEach((key) => {
-        const msg = messages[key];
-        const p = document.createElement("p");
-        const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        p.innerHTML = `[${time}] ${msg.username || "Unknown"}: ${msg.text.replace(/\n/g, "<br>")}`; // Render line breaks
-        chatBox.appendChild(p);
-      });
+keys.forEach((key) => {
+  const msg = messages[key];
+
+  const msgWrapper = document.createElement("div");
+  msgWrapper.className = "message-wrapper";
+
+  const p = document.createElement("p");
+  const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  // Convert URLs to clickable links
+  const safeText = msg.text.replace(/(https:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="link">$1</a>');
+  p.innerHTML = `[${time}] ${msg.username || "Unknown"}: ${safeText}`;
+
+  // Copy button
+  const copyBtn = document.createElement("button");
+  copyBtn.textContent = "Copy";
+  copyBtn.className = "copy-button";
+  copyBtn.onclick = () => {
+    navigator.clipboard.writeText(msg.text);
+  };
+
+  msgWrapper.appendChild(p);
+  msgWrapper.appendChild(copyBtn);
+  chatBox.appendChild(msgWrapper);
+});
+
 // Add empty spacer at the end to make space for chat bar
 const spacer = document.createElement("div");
 spacer.style.height = "80px";
