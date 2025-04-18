@@ -34,6 +34,7 @@
       transition: background-color 0.2s ease;
       border-radius: 4px;
       padding: 2px 4px;
+      cursor: pointer;
     }
 
     #chat-form {
@@ -78,14 +79,39 @@
       color: #90cdf4;
       text-decoration: underline;
     }
+
+    /* Hides the send bar until username is entered */
+    #username-form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    /* Additional styling for the username input */
+    #username-input {
+      font-size: 1.2rem;
+      padding: 10px 20px;
+      width: 300px;
+      max-width: 80%;
+      border-radius: 8px;
+      border: none;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Prevents the send bar from overlapping or shifting content */
+    #chat-form {
+      display: none;
+    }
   </style>
 </head>
 <body>
 
-<div id="username-form" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
+<div id="username-form">
   <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">Enter your username to start chatting</h2>
-  <input type="text" id="username-input" placeholder="Your username" style="font-size: 1.2rem; padding: 10px 20px; width: 300px; max-width: 80%; border-radius: 8px; border: none; box-shadow: 0 0 10px rgba(0,0,0,0.1);" />
-  <button onclick="startChat()" style="margin-top: 1rem;">Start Chat</button>
+  <input type="text" id="username-input" placeholder="Your username" />
+  <button onclick="startChat()">Start Chat</button>
 </div>
 
 <!-- Chat box -->
