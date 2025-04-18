@@ -139,24 +139,19 @@
     if (!username) return;
 
     document.getElementById("username-form").style.display = "none";
-    document.getElementById("loading-spinner").style.display = "flex";
+    document.getElementById("chat-box").style.display = "block";
+    document.getElementById("chat-form").style.display = "flex";
 
-    setTimeout(() => {
-      document.getElementById("loading-spinner").style.display = "none";
-      document.getElementById("chat-box").style.display = "block";
-      document.getElementById("chat-form").style.display = "flex";
+    listenForMessages();
+    cleanOldMessages();
 
-      listenForMessages();
-      cleanOldMessages();
-
-      const messageInput = document.getElementById("message-input");
-      messageInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-          e.preventDefault();
-          sendMessage();
-        }
-      });
-    }, 1000);
+    const messageInput = document.getElementById("message-input");
+    messageInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
   }
 
   window.startChat = startChat;
