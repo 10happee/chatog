@@ -58,7 +58,7 @@ function sendMessage() {
     const timestamp = Date.now();
     const messageRef = ref(db, "messages/" + timestamp);
     set(messageRef, {
-      text,
+      text: text, // We send the message with line breaks preserved
       timestamp,
       username
     });
@@ -85,7 +85,7 @@ function listenForMessages() {
         const msg = messages[key];
         const p = document.createElement("p");
         const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        p.textContent = `[${time}] ${msg.username || "Unknown"}: ${msg.text}`;
+        p.innerHTML = `[${time}] ${msg.username || "Unknown"}: ${msg.text.replace(/\n/g, "<br>")}`; // Render line breaks
         chatBox.appendChild(p);
       });
       chatBox.scrollTop = chatBox.scrollHeight;
