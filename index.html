@@ -32,13 +32,14 @@
       background-color: #1e1e1e;
       margin-bottom: 10px;
       flex-grow: 1;
+      white-space: pre-wrap; /* Preserve line breaks */
     }
 
     #chat-form {
       display: flex;
       justify-content: space-between;
       padding: 10px;
-      background-color: #333;
+      background-color: rgba(50, 50, 50, 0.8); /* Translucent background */
       position: fixed;
       bottom: 0;
       width: 100%;
@@ -52,8 +53,9 @@
       color: white;
       border-radius: 5px;
       max-height: 50px;
-      resize: none; /* Prevent manual resizing */
+      resize: none;
       overflow-wrap: break-word; /* Auto line breaks */
+      white-space: pre-wrap; /* Preserves line breaks in message */
     }
 
     #send-button {
