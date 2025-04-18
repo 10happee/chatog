@@ -62,12 +62,15 @@ window.sendMessage = () => {
 const chatBox = document.getElementById("chat-box");
 const messagesRef = ref(db, "messages");
 
+let lastMessageKey = null;
+
 function listenForMessages() {
   onValue(messagesRef, (snapshot) => {
     const messages = snapshot.val();
     chatBox.innerHTML = "";
     if (messages) {
       const keys = Object.keys(messages).sort();
+      const latestKey = keys[keys.length - 1];
       keys.forEach((key) => {
         const msg = messages[key];
         const p = document.createElement("p");
@@ -76,9 +79,19 @@ function listenForMessages() {
         chatBox.appendChild(p);
       });
       chatBox.scrollTop = chatBox.scrollHeight;
+
+      // Play sound if a new message came in
+      if (lastMessageKey && latestKey !== lastMessageKey) {
+        const sound = document.getElementById("ping-sound");
+        const volume = parseFloat(document.getElementById("volume-slider").value);
+        sound.volume = volume;
+        sound.play();
+      }
+      lastMessageKey = latestKey;
     }
   });
 }
+
 
 // Delete messages older than 12 hours or keep only latest 300
 function cleanOldMessages() {
