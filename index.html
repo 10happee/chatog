@@ -31,6 +31,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      position: relative;
     }
 
     /* Message hover effect */
@@ -47,10 +48,26 @@
       border-radius: 4px;
       cursor: pointer;
       visibility: hidden;
+      font-size: 0.9rem;
     }
 
     #chat-box p:hover .copy-btn {
       visibility: visible;
+    }
+
+    .message-content {
+      flex-grow: 1;
+    }
+
+    .message-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    .message-header span {
+      font-weight: bold;
     }
 
     #chat-form {
@@ -225,7 +242,15 @@
           const p = document.createElement("p");
           const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
           const msgText = msg.text.replace(/(https:\/\/\S+)/g, '<a href="$1" target="_blank">$1</a>');
-          p.innerHTML = `[${time}] <strong>${msg.username || "Unknown"}</strong>: ${msgText}`;
+
+          // Create message content structure
+          p.innerHTML = `
+            <div class="message-header">
+              <span>[${time}]</span> 
+              <span>${msg.username || "Unknown"}</span>
+            </div>
+            <div class="message-content">${msgText}</div>
+          `;
 
           // Create the copy button
           const copyButton = document.createElement("button");
@@ -233,7 +258,8 @@
           copyButton.textContent = "Copy";
           copyButton.onclick = () => {
             navigator.clipboard.writeText(msg.text).then(() => {
-              alert("Message copied to clipboard!");
+              copyButton.textContent = "Copied!"; // Change button text to "Copied!"
+              setTimeout(() => copyButton.textContent = "Copy", 2000); // Reset after 2 seconds
             }).catch((err) => {
               alert("Failed to copy message: " + err);
             });
@@ -249,13 +275,6 @@
         chatBox.appendChild(spacer);
 
         chatBox.scrollTop = chatBox.scrollHeight;
-
-        if (lastMessageKey && latestKey !== lastMessageKey) {
-          const sound = document.getElementById("ping-sound");
-          const volume = parseFloat(document.getElementById("volume-slider").value);
-          sound.volume = volume;
-          sound.play();
-        }
         lastMessageKey = latestKey;
       }
     });
