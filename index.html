@@ -103,18 +103,6 @@
 <!-- Sound -->
 <audio id="ping-sound" src="ping.mp3" preload="auto"></audio>
 
-<!-- Loading Spinner -->
-<div id="loading-spinner" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; display: flex; align-items: center; justify-content: center;">
-  <div style="border: 6px solid #f3f3f3; border-top: 6px solid #4f46e5; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite;"></div>
-</div>
-
-<style>
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-</style>
-
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
   import {
