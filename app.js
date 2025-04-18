@@ -37,7 +37,17 @@ function startChat() {
 
   listenForMessages();
   cleanOldMessages(); // Initial cleanup
+
+  // ✅ Enter to send
+  const messageInput = document.getElementById("message-input");
+  messageInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault(); // Prevent newline
+      sendMessage();
+    }
+  });
 }
+
 
 window.startChat = startChat; // <-- This is the fix
 
