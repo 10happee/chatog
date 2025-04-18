@@ -53,17 +53,36 @@ window.startChat = startChat;
 // Send message
 function sendMessage() {
   const input = document.getElementById("message-input");
-  const text = input.value.trim();
+  let text = input.value.trim();
   if (text !== "") {
+    // Split long words (more than 20 chars) into separate lines
+    text = splitLongWords(text);
+    
     const timestamp = Date.now();
     const messageRef = ref(db, "messages/" + timestamp);
     set(messageRef, {
-      text: text, // We send the message with line breaks preserved
+      text: text, // Send message with proper line breaks
       timestamp,
       username
     });
     input.value = ""; // Clear input after sending
   }
+}
+
+function splitLongWords(text) {
+  const maxWordLength = 20; // Limit for word length to force a break
+  return text.split(" ").map(word => {
+    if (word.length > maxWordLength) {
+      // Break long words into smaller chunks
+      let brokenWord = '';
+      for (let i = 0; i < word.length; i += maxWordLength) {
+        brokenWord += word.slice(i, i + maxWordLength) + "<br>";
+      }
+      return brokenWord.trim();
+    } else {
+      return word;
+    }
+  }).join(" ");
 }
 
 window.sendMessage = sendMessage;
