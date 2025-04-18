@@ -112,7 +112,6 @@
 </form>
 
 <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.5" title="Ping Volume" />
-
 <audio id="ping-sound" src="ping.mp3" preload="auto"></audio>
 
 <script type="module">
@@ -145,9 +144,19 @@
   const chatBox = document.getElementById("chat-box");
   const messagesRef = ref(db, "messages");
 
+  const blacklist = ["shit", "fuck", "nigger", "nigga", "bitch"];
+
+  function censorText(text) {
+    blacklist.forEach(word => {
+      const regex = new RegExp(word, "gi");
+      text = text.replace(regex, (match) => '*'.repeat(match.length));
+    });
+    return text;
+  }
+
   function startChat() {
     const input = document.getElementById("username-input");
-    username = input.value.trim() || "Anonymous";
+    username = censorText(input.value.trim() || "Anonymous");
     if (!username) return;
 
     document.getElementById("username-form").style.display = "none";
@@ -170,12 +179,12 @@
 
   window.sendMessage = () => {
     const input = document.getElementById("message-input");
-    const text = input.value.trim();
+    let text = input.value.trim();
     if (text !== "") {
       const timestamp = Date.now();
       const messageRef = ref(db, "messages/" + timestamp);
       set(messageRef, {
-        text,
+        text: censorText(text),
         timestamp,
         username
       });
