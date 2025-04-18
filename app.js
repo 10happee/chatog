@@ -27,7 +27,7 @@ const db = getDatabase(app);
 let username = "";
 
 // Start chat after setting username
-window.startChat = () => {
+function startChat() {
   const input = document.getElementById("username-input");
   username = input.value.trim() || "Anonymous";
 
@@ -37,7 +37,10 @@ window.startChat = () => {
 
   listenForMessages();
   cleanOldMessages(); // Initial cleanup
-};
+}
+
+window.startChat = startChat; // <-- This is the fix
+
 
 // Send message
 window.sendMessage = () => {
