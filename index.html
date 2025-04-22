@@ -1,10 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Meta and title setup -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Happee Chat</title>
+
+  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet" />
+
+  <!-- Styles -->
   <style>
     body {
       font-family: 'Poppins', sans-serif;
@@ -86,8 +91,20 @@
     #volume-slider {
       position: fixed;
       top: 10px;
-      right: 10px;
+      right: 120px;
       width: 100px;
+    }
+
+    #clear-chat {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background-color: #e53e3e;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
     }
 
     a {
@@ -98,169 +115,175 @@
 </head>
 <body>
 
-<div id="username-form" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
-  <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">Enter your username to start chatting</h2>
-  <input type="text" id="username-input" placeholder="Your username" style="font-size: 1.2rem; padding: 10px 20px; width: 300px; max-width: 80%; border-radius: 8px; border: none; box-shadow: 0 0 10px rgba(0,0,0,0.1);" />
-  <button onclick="startChat()" style="margin-top: 1rem;">Start Chat</button>
-</div>
+  <!-- Username input form -->
+  <div id="username-form" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
+    <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">Enter your username to start chatting</h2>
+    <input type="text" id="username-input" placeholder="Your username" style="font-size: 1.2rem; padding: 10px 20px; width: 300px; max-width: 80%; border-radius: 8px; border: none; box-shadow: 0 0 10px rgba(0,0,0,0.1);" />
+    <button onclick="startChat()" style="margin-top: 1rem;">Start Chat</button>
+  </div>
 
-<div id="chat-box" style="display: none;"></div>
+  <!-- Chat messages container -->
+  <div id="chat-box" style="display: none;"></div>
 
-<form id="chat-form">
-  <textarea id="message-input" placeholder="Type your message..." rows="1"></textarea>
-  <button type="button" onclick="sendMessage()">Send</button>
-</form>
+  <!-- Message form -->
+  <form id="chat-form">
+    <textarea id="message-input" placeholder="Type your message..." rows="1"></textarea>
+    <button type="button" onclick="sendMessage()">Send</button>
+  </form>
 
-<input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.5" title="Ping Volume" />
-<audio id="ping-sound" src="ping.mp3" preload="auto"></audio>
+  <!-- Volume and clear chat -->
+  <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.5" title="Ping Volume" />
+  <button id="clear-chat" onclick="clearChat()">Clear Chat</button>
+  <audio id="ping-sound" src="ping.mp3" preload="auto"></audio>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-  import {
-    getDatabase,
-    ref,
-    set,
-    onValue,
-    remove,
-    get
-  } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+  <!-- Firebase and chat script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      set,
+      onValue,
+      remove,
+      get
+    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDTQvxP6ERHw5e00BIFsEPy1R80Ma_6qfM",
-    authDomain: "happeechat.firebaseapp.com",
-    databaseURL: "https://happeechat-default-rtdb.firebaseio.com",
-    projectId: "happeechat",
-    storageBucket: "happeechat.firebasestorage.app",
-    messagingSenderId: "851920750529",
-    appId: "1:851920750529:web:8e15bf1c0b685aa2c41140",
-    measurementId: "G-JTMNJS18XP"
-  };
+    const firebaseConfig = {
+      apiKey: "AIzaSyDTQvxP6ERHw5e00BIFsEPy1R80Ma_6qfM",
+      authDomain: "happeechat.firebaseapp.com",
+      databaseURL: "https://happeechat-default-rtdb.firebaseio.com",
+      projectId: "happeechat",
+      storageBucket: "happeechat.firebasestorage.app",
+      messagingSenderId: "851920750529",
+      appId: "1:851920750529:web:8e15bf1c0b685aa2c41140",
+      measurementId: "G-JTMNJS18XP"
+    };
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  let username = "";
-  let lastMessageKey = null;
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    let username = "";
+    let lastMessageKey = null;
 
-  const chatBox = document.getElementById("chat-box");
-  const messagesRef = ref(db, "messages");
+    const chatBox = document.getElementById("chat-box");
+    const messagesRef = ref(db, "messages");
 
-  const blacklist = ["shit", "fuck", "nigger", "nigga", "bitch"];
+    const blacklist = ["shit", "fuck", "nigger", "nigga", "bitch"];
 
-  function censorText(text) {
-    blacklist.forEach(word => {
-      const regex = new RegExp(word, "gi");
-      text = text.replace(regex, (match) => '*'.repeat(match.length));
-    });
-    return text;
-  }
-
-  function startChat() {
-    const input = document.getElementById("username-input");
-    username = censorText(input.value.trim() || "Anonymous");
-    if (!username) return;
-
-    document.getElementById("username-form").style.display = "none";
-    document.getElementById("chat-box").style.display = "block";
-    document.getElementById("chat-form").style.display = "flex";
-
-    listenForMessages();
-    cleanOldMessages();
-
-    const messageInput = document.getElementById("message-input");
-    messageInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
-    });
-  }
-
-  window.startChat = startChat;
-
-  window.sendMessage = () => {
-    const input = document.getElementById("message-input");
-    let text = input.value.trim();
-    if (text !== "") {
-      const timestamp = Date.now();
-      const messageRef = ref(db, "messages/" + timestamp);
-      set(messageRef, {
-        text: censorText(text),
-        timestamp,
-        username
+    function censorText(text) {
+      blacklist.forEach(word => {
+        const regex = new RegExp(word, "gi");
+        text = text.replace(regex, (match) => '*'.repeat(match.length));
       });
-      input.value = "";
+      return text;
     }
-  };
 
-  function listenForMessages() {
-    onValue(messagesRef, (snapshot) => {
-      const messages = snapshot.val();
-      chatBox.innerHTML = "";
-      if (messages) {
-        const keys = Object.keys(messages).sort();
-        const latestKey = keys[keys.length - 1];
-        keys.forEach((key) => {
-          const msg = messages[key];
-          const p = document.createElement("p");
-          p.className = "message";
-          const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          const msgText = msg.text.replace(/(https:\/\/\S+)/g, '<a href="$1" target="_blank">$1</a>');
-          p.innerHTML = `[${time}] <strong>${msg.username || "Unknown"}</strong>: ${msgText}`;
+    function startChat() {
+      const input = document.getElementById("username-input");
+      username = censorText(input.value.trim() || "Anonymous");
+      if (!username) return;
 
-          const copyBtn = document.createElement("button");
-          copyBtn.className = "copy-btn";
-          copyBtn.textContent = "Copy";
-          copyBtn.onclick = () => {
-            navigator.clipboard.writeText(msg.text);
-            copyBtn.textContent = "Copied!";
-            setTimeout(() => copyBtn.textContent = "Copy", 1000);
-          };
-          p.appendChild(copyBtn);
-          chatBox.appendChild(p);
-        });
+      document.getElementById("username-form").style.display = "none";
+      document.getElementById("chat-box").style.display = "block";
+      document.getElementById("chat-form").style.display = "flex";
 
-        const spacer = document.createElement("div");
-        spacer.style.height = "60px";
-        chatBox.appendChild(spacer);
+      listenForMessages();
+      cleanOldMessages();
 
-        chatBox.scrollTop = chatBox.scrollHeight;
-
-        if (lastMessageKey && latestKey !== lastMessageKey) {
-          const sound = document.getElementById("ping-sound");
-          const volume = parseFloat(document.getElementById("volume-slider").value);
-          sound.volume = volume;
-          sound.play();
+      const messageInput = document.getElementById("message-input");
+      messageInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
         }
-        lastMessageKey = latestKey;
-      }
-    });
-  }
-
-  function cleanOldMessages() {
-    get(messagesRef).then((snapshot) => {
-      const messages = snapshot.val();
-      if (!messages) return;
-
-      const now = Date.now();
-      const keys = Object.keys(messages);
-      const keysToDelete = [];
-
-      keys.sort((a, b) => parseInt(a) - parseInt(b));
-
-      for (let i = 0; i < keys.length; i++) {
-        const msg = messages[keys[i]];
-        const age = now - msg.timestamp;
-        if (age > 12 * 60 * 60 * 1000 || keys.length - i > 300) {
-          keysToDelete.push(keys[i]);
-        }
-      }
-
-      keysToDelete.forEach((key) => {
-        remove(ref(db, "messages/" + key));
       });
-    });
-  }
-</script>
+    }
 
-</body>
-</html>
+    window.startChat = startChat;
+
+    window.sendMessage = () => {
+      const input = document.getElementById("message-input");
+      let text = input.value.trim();
+      if (text !== "") {
+        const timestamp = Date.now();
+        const messageRef = ref(db, "messages/" + timestamp);
+        set(messageRef, {
+          text: censorText(text),
+          timestamp,
+          username
+        });
+        input.value = "";
+      }
+    };
+
+    function listenForMessages() {
+      onValue(messagesRef, (snapshot) => {
+        const messages = snapshot.val();
+        chatBox.innerHTML = "";
+        if (messages) {
+          const keys = Object.keys(messages).sort();
+          const latestKey = keys[keys.length - 1];
+          keys.forEach((key) => {
+            const msg = messages[key];
+            const p = document.createElement("p");
+            p.className = "message";
+            const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const msgText = msg.text.replace(/(https:\/\/\S+)/g, '<a href="$1" target="_blank">$1</a>');
+            p.innerHTML = `[${time}] <strong>${msg.username || "Unknown"}</strong>: ${msgText}`;
+
+            const copyBtn = document.createElement("button");
+            copyBtn.className = "copy-btn";
+            copyBtn.textContent = "Copy";
+            copyBtn.onclick = () => {
+              navigator.clipboard.writeText(msg.text);
+              copyBtn.textContent = "Copied!";
+              setTimeout(() => copyBtn.textContent = "Copy", 1000);
+            };
+            p.appendChild(copyBtn);
+            chatBox.appendChild(p);
+          });
+
+          const spacer = document.createElement("div");
+          spacer.style.height = "60px";
+          chatBox.appendChild(spacer);
+
+          chatBox.scrollTop = chatBox.scrollHeight;
+
+          if (lastMessageKey && latestKey !== lastMessageKey) {
+            const sound = document.getElementById("ping-sound");
+            const volume = parseFloat(document.getElementById("volume-slider").value);
+            sound.volume = volume;
+            sound.play();
+          }
+          lastMessageKey = latestKey;
+        }
+      });
+    }
+
+    function cleanOldMessages() {
+      get(messagesRef).then((snapshot) => {
+        const messages = snapshot.val();
+        if (!messages) return;
+
+        const now = Date.now();
+        const keys = Object.keys(messages);
+        const keysToDelete = [];
+
+        keys.sort((a, b) => parseInt(a) - parseInt(b));
+
+        for (let i = 0; i < keys.length; i++) {
+          const msg = messages[keys[i]];
+          const age = now - msg.timestamp;
+          if (age > 12 * 60 * 60 * 1000 || keys.length - i > 300) {
+            keysToDelete.push(keys[i]);
+          }
+        }
+
+        keysToDelete.forEach((key) => {
+          remove(ref(db, "messages/" + key));
+        });
+      });
+    }
+
+    window.clearChat = () => {
+      if (confirm("Are you sure you want to clear the entire chat?")) {
+        remove
