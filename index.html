@@ -187,6 +187,16 @@
       document.getElementById("chat-box").style.display = "block";
       document.getElementById("chat-form").style.display = "flex";
 
+      // Send "has joined" message
+      const joinMessage = `${username} has joined the chat.`;
+      const timestamp = Date.now();
+      const messageRef = ref(db, "messages/" + timestamp);
+      set(messageRef, {
+        text: `*${joinMessage}*`,
+        timestamp,
+        username: "System"
+      });
+
       listenForMessages();
       cleanOldMessages();
 
