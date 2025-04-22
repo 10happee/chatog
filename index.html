@@ -4,9 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Happee Chat</title>
-
   <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet" />
-
   <style>
     body {
       font-family: 'Poppins', sans-serif;
@@ -106,6 +104,10 @@
       text-align: center;
       font-size: 0.9rem;
       color: #aaa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
     }
 
     a {
@@ -149,7 +151,7 @@
       authDomain: "happeechat.firebaseapp.com",
       databaseURL: "https://happeechat-default-rtdb.firebaseio.com",
       projectId: "happeechat",
-      storageBucket: "happeechat.firebasestorage.app",
+      storageBucket: "happeechat.appspot.com",
       messagingSenderId: "851920750529",
       appId: "1:851920750529:web:8e15bf1c0b685aa2c41140",
       measurementId: "G-JTMNJS18XP"
@@ -161,6 +163,7 @@
     let lastMessageKey = null;
     let lastSeenTimestamp = 0;
     let unreadCount = 0;
+    let hasUnread = false;
 
     const chatBox = document.getElementById("chat-box");
     const messagesRef = ref(db, "messages");
@@ -236,6 +239,7 @@
         const messages = snapshot.val();
         chatBox.innerHTML = "";
         unreadCount = 0;
+        hasUnread = false;
 
         if (messages) {
           const keys = Object.keys(messages).sort();
@@ -249,9 +253,10 @@
             if (isUnread && !separatorInserted) {
               const separator = document.createElement("div");
               separator.id = "unread-separator";
-              separator.textContent = "Unread Messages";
+              separator.innerHTML = `<span>Unread Messages</span><button onclick="markAllAsRead()">Read Messages</button>`;
               chatBox.appendChild(separator);
               separatorInserted = true;
+              hasUnread = true;
             }
 
             const p = document.createElement("p");
@@ -277,7 +282,6 @@
           const spacer = document.createElement("div");
           spacer.style.height = "60px";
           chatBox.appendChild(spacer);
-
           chatBox.scrollTop = chatBox.scrollHeight;
 
           if (lastMessageKey && latestKey !== lastMessageKey) {
@@ -288,13 +292,27 @@
           }
           lastMessageKey = latestKey;
 
-          if (unreadCount > 0) {
-            document.title = `Happee Chat [${unreadCount}]`;
-          } else {
-            document.title = "Happee Chat";
-          }
+          updateTitle();
         }
       });
+    }
+
+    function markAllAsRead() {
+      lastSeenTimestamp = Date.now();
+      document.title = "Happee Chat";
+      unreadCount = 0;
+      const separator = document.getElementById("unread-separator");
+      if (separator) separator.remove();
+    }
+
+    window.markAllAsRead = markAllAsRead;
+
+    function updateTitle() {
+      if (unreadCount > 0 && hasUnread) {
+        document.title = `Happee Chat [${unreadCount}]`;
+      } else {
+        document.title = "Happee Chat";
+      }
     }
 
     function cleanOldMessages() {
