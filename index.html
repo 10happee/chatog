@@ -1,15 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Meta and title setup -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Happee Chat</title>
 
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet" />
 
-  <!-- Styles -->
   <style>
     body {
       font-family: 'Poppins', sans-serif;
@@ -69,6 +66,7 @@
       gap: 10px;
       box-sizing: border-box;
       display: none;
+      display: flex;
     }
 
     #message-input {
@@ -88,23 +86,18 @@
       cursor: pointer;
     }
 
-    #volume-slider {
-      position: fixed;
-      top: 10px;
-      right: 120px;
-      width: 100px;
-    }
-
-    #clear-chat {
+    #top-controls {
       position: fixed;
       top: 10px;
       right: 10px;
-      background-color: #e53e3e;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      z-index: 10;
+    }
+
+    #volume-slider {
+      width: 100px;
     }
 
     a {
@@ -115,28 +108,26 @@
 </head>
 <body>
 
-  <!-- Username input form -->
   <div id="username-form" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
     <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">Enter your username to start chatting</h2>
     <input type="text" id="username-input" placeholder="Your username" style="font-size: 1.2rem; padding: 10px 20px; width: 300px; max-width: 80%; border-radius: 8px; border: none; box-shadow: 0 0 10px rgba(0,0,0,0.1);" />
     <button onclick="startChat()" style="margin-top: 1rem;">Start Chat</button>
   </div>
 
-  <!-- Chat messages container -->
   <div id="chat-box" style="display: none;"></div>
 
-  <!-- Message form -->
   <form id="chat-form">
     <textarea id="message-input" placeholder="Type your message..." rows="1"></textarea>
     <button type="button" onclick="sendMessage()">Send</button>
   </form>
 
-  <!-- Volume and clear chat -->
-  <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.5" title="Ping Volume" />
-  <button id="clear-chat" onclick="clearChat()">Clear Chat</button>
+  <div id="top-controls">
+    <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.5" title="Ping Volume" />
+    <button onclick="clearChat()">Clear Chat</button>
+  </div>
+
   <audio id="ping-sound" src="ping.mp3" preload="auto"></audio>
 
-  <!-- Firebase and chat script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
     import {
@@ -215,6 +206,12 @@
       }
     };
 
+    window.clearChat = () => {
+      if (confirm("Are you sure you want to clear all chat messages?")) {
+        remove(messagesRef);
+      }
+    };
+
     function listenForMessages() {
       onValue(messagesRef, (snapshot) => {
         const messages = snapshot.val();
@@ -283,7 +280,7 @@
         });
       });
     }
+  </script>
 
-    window.clearChat = () => {
-      if (confirm("Are you sure you want to clear the entire chat?")) {
-        remove
+</body>
+</html>
